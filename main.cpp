@@ -1,3 +1,4 @@
+// Qunatlib includes
 #include <ql/qldefines.hpp>
 #include <ql/instruments/vanillaoption.hpp>
 #include <ql/math/integrals/tanhsinhintegral.hpp>
@@ -16,11 +17,54 @@
 #include <ql/time/calendars/target.hpp>
 #include <ql/utilities/dataformatters.hpp>
 
+// Boost includes
+#include <boost/mysql/any_connection.hpp>
+#include <boost/mysql/connect_params.hpp>
+#include <boost/mysql/error_with_diagnostics.hpp>
+#include <boost/mysql/results.hpp>
+
+// Standard C++ includes
 #include <iostream>
 #include <iomanip>
 #include <string>
- 
+
+namespace mysql = boost::mysql;
+namespace asio = boost::asio;
 using namespace QuantLib;
+
+
+void main_impl(std::string username, std::string password, std::string hostname)
+{
+    // The execution context, required to run I/O operations.
+    asio::io_context ctx;
+
+    // Represents a connection to the MySQL server.
+    mysql::any_connection conn(ctx);
+
+    // The hostname, username and password to use
+    mysql::connect_params params;
+    params.server_address.emplace_host_and_port(hostname);
+    params.username = username;
+    params.password = password;
+
+    // Connect to the server
+    conn.connect(params);
+
+    // Issue the SQL query to the server
+    const char* sql = "select * from option_calculator_db.all_stocks_5yr LIMIT 20;";
+    mysql::results result;
+    conn.execute(sql, result);
+
+    // Print the first field in the first row
+    for (const auto& row : result.rows()) {
+        for (const auto& field : row) {
+            std::cout << field << "\t";
+        }
+        std::cout << std::endl;
+    }
+    // Close the connection
+    conn.close();
+}
  
 int main(int, char* []) {
 
@@ -47,7 +91,6 @@ int main(int, char* []) {
         riskFreeRate = 0.07;
         volatility = 0.20;
     }
-
 
     try {
 

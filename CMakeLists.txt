@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(Boost REQUIRED)
+find_package(Threads REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 # --- Manual searching for QuantLib (only brew version) ---
 find_path(QUANTLIB_INCLUDE_DIR
@@ -36,4 +38,7 @@ target_include_directories(OptionCalculator PRIVATE
 target_link_libraries(OptionCalculator PRIVATE
         ${QUANTLIB_LIBRARY}
         Boost::boost
+        Threads::Threads
+        OpenSSL::Crypto
+        OpenSSL::SSL
 )
